@@ -163,11 +163,12 @@ while gradient_steps < args.total_steps:
     gradient_steps += args.local_steps
     # update global_weight and global_state, for different algorithm, you only need to update here
     for n, p in global_weight.items():
-        d_p = global_state["momentum"][n].mul(global_betas[0]).add(aggregated_pseudo_gradients[n] / args.num_nodes,alpha= 1 - global_betas[0])
+        now_grad = aggregated_pseudo_gradients[n] / args.num_nodes
+        d_p = global_state["momentum"][n] * global_betas[0] + now_grad * (1 - global_betas[0])
         d_p.sign_()
 
         # update momentum
-        global_state["momentum"][n].mul_(global_betas[1]).add_(aggregated_pseudo_gradients[n] / args.num_nodes,alpha= 1 - global_betas[1])
+        global_state["momentum"][n].mul_(global_betas[1]).add_(now_grad, alpha= 1 - global_betas[1])
 
         # weight_deacy
         d_p.add_(p, alpha=global_weight_decay)
